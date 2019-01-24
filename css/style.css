@@ -1,0 +1,91 @@
+*{
+    margin:0;
+    padding:0;
+}
+
+html,body{
+    height:100%;
+    width:100%;
+}
+
+.jumbotron, section, #div-nome-artista{
+    text-align:center;
+}
+
+header{
+    background-image:url("../img/9_1200x630_bg.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+}
+
+
+#img-artista{
+    width:200px;
+    height:200px;
+    border-radius:100%;
+}
+
+.img-rank-others{
+    height: 70px;
+    width: 70px;
+    border-radius:100%;
+}
+
+.hr-others{
+    margin-top:-2px;    
+}
+
+#img-rank-frstplace{
+    border-radius:100%;
+}
+
+#rank-icon{
+     font-size:2.5em;
+     color:rgb(250, 205, 56);
+}
+
+#card-header-rank, #rank-background-img{
+    max-height:25em;
+}
+
+.rank-first-place{
+    height:200px;
+    width:200px;
+}
+
+#nome-artista{
+    background-color:transparent;
+    border:none;
+    text-align:center;
+    font-size:30px;
+}
+
+#conteudo{
+    overflow:auto;
+}
+
+button{
+    cursor:pointer;
+}
+
+#div-erro{
+    display:none;
+}
+
+.btn-period{
+    border-radius:100%;
+}
+
+footer{
+    font-size:16px;
+    text-align:center;
+    margin:auto auto 0 auto;
+}
+
+#esqueleto{
+    max-width:2000px;
+    min-height: 100vh;
+    margin-left:auto;
+    margin-right:auto;
+}

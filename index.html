@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Artistas - Vagalume</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous"/>
+    <script type="text/javascript" src="lib/jquery-3.1.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+    <script>
+
+        var nomeArtista = "",
+            contadorCliques = 0;
+
+        $(document).ready(function(){
+            rankMensal();
+        })
+
+        function procurarArtista(){
+            //JA QUE É UM FORMULARIO PARA PREVINIR QUE ELE NÃO RECARREGUE A PAGINA AO ENVIAR OS DADOS
+            event.preventDefault();
+            //COLOCA O NOME DO ARTISTA EM MINUSCULO PARA PESQUISA POR POST
+            nomeArtista = $('#nome-artista').val().toLowerCase();
+            
+            //VERIFICA SE HÁ ESPAÇOS EM BRANCO NA STRING
+            //exemplo: .indexOf(" ") != -1
+            //-1 se não encontrar
+            if(nomeArtista.match(" ")){
+                //SUBSTITUI O ESPAÇO EM BRANCO POR "-", UTILIZANDO O "g"(GLOBAL) PARA QUE SUBSTITUA EM TODA STRING
+                nomeArtista = nomeArtista.replace(/ /g,"-");
+            }
+
+            //CHAMA A FUNÇÃO DE PESQUISA
+            retornaJsonPesquisa();
+        }
+
+        function retornaJsonPesquisa(){
+
+            if(nomeArtista != ""){
+                jQuery.getJSON("https://www.vagalume.com.br/"+nomeArtista+"/index.js")
+                    .done(function(data){
+
+                       $("#div-erro").html("");
+                        $("#div-erro").css("display","none");
+
+                        //VARIAVEIS LISTAS/ARRAY
+                        var lstMusicaTop = new Array(),
+                            lstAlbumAno = new Array();
+                        //VARIAVEIS
+                        var generoMsc = "",
+                            listDivMusic = "",
+                            listDivAlbums = "",
+                            albumAno = "";
+                        //VARIAVEIS QUE PEGAM CONTEUDO DO JSON
+                        var imgArtista = data.artist.pic_medium,
+                            nomeArtista = data.artist.desc,
+                            genero = data.artist.genre,
+                            topMusics = data.artist.toplyrics.item,
+                            pontosRankArtista = data.artist.rank.points,
+                            posicaoRankArtista = data.artist.rank.pos,
+                            topAlbums = data.artist.albums.item;
+
+                        //TOP DE MUSICAS MAIS PESQUISADAS
+                        for(var m in topMusics){
+                            if(m < 3){
+                                lstMusicaTop[m] = topMusics[m].desc;
+                            }
+                        }
+                        
+                        //ALBUNS MAIS POPULARES
+                        for(var h in topAlbums){
+                            if(h < 3){
+                                lstAlbumAno.push({nome: topAlbums[h].desc, ano: topAlbums[h].year});
+                            }
+                        }
+                        
+                        //GENEROS DA BANDA/ARTISTA
+                        for(var i in genero){
+                            if(i == 0){
+                                generoMsc = generoMsc+genero[i].name; 
+                            }
+                            if(i > 0 && i < 4){
+                                generoMsc = generoMsc+", "+genero[i].name; 
+                            }
+                        }
+
+                        //VAI ADICIONANDO EM UMA LISTA AS MUSICAS TOPS
+                        for(var n = 0; n < lstMusicaTop.length; n++){
+                           listDivMusic = listDivMusic+"<div class='list-group-item'>"+lstMusicaTop[n]+"</div>";
+                        }
+                        
+                        //CRIA A LISTA DE MUSICAS "DIV"
+                        $("#musicas-populares").html("<div class='list-group'>"+
+                                                        "<div class='list-group-item text-white bg-dark'><strong>Top Musicas</strong></div>"+
+                                                        listDivMusic +
+                                                    "</div>"
+                        )
+
+                        //PERCORRE NA LISTA DE ALBUNS E DOS ANOS DE LANÇAMENTOS E ADICONA NO HTML
+                        for(var j = 0; j < lstAlbumAno.length ; j++){
+                            albumAno = "<div class='collapse mb-2 mt-2' id='anoAlbumCollapse"+j+"'>"+
+                                        "<div class='card card-body text-white bg-dark'>Lançamento: "+lstAlbumAno[j].ano+"</div>"+
+                                    "</div>"; 
+                            listDivAlbums = listDivAlbums+"<button class='list-group-item list-group-item-action' data-toggle='collapse' data-target='#anoAlbumCollapse"+j+"'>"+lstAlbumAno[j].nome+"</button>"+albumAno;
+                        }
+                        //CRIA LISTA DE ALBUNS
+                        $("#albums-populares").html("<div class='list-group'>"+
+                                                        "<div class='list-group-item text-white bg-dark'><strong>Albuns Populares</strong></div>"+
+                                                        listDivAlbums +
+                                                    "</div>"
+                        )
+
+                        $("#div-nome-artista").html("<h4 class='display3'>"+nomeArtista+"</h4>");
+
+                        $("#pontos-artista").html("<h6 class='display4 bg-success d-inline-block mt-2 rounded p-2'>Pontos <span class='badge badge-light'>"+pontosRankArtista+"</span></h6>"+
+                                                  "<h6 class='display4 bg-info d-inline-block mt-2 ml-2 rounded p-2'>Rank <span class='badge badge-light'>"+posicaoRankArtista+"</span></h6>"
+                        );
+                            
+                        $("#div-img-artista").html("<img id='img-artista' src='https://www.vagalume.com.br"+imgArtista+"'>");
+
+                        $("#descricao-artista").html("<strong>Genêros Relacionados: </strong>"+generoMsc);
+
+                    })
+                    .fail(function(){
+                        $("#div-erro").css("display","block");
+                        $("#div-erro").attr("class", "  alert alert-danger");
+                        $("#div-erro").html("<h6 class='alert-heading'>Erro! :(</h6>"+
+                                            "<p>Verifique se digitou o nome do artista corretamente.</p>");
+                    });
+                    
+            }
+        }
+
+        function rankMensal(p){
+
+            var periodoButtonVal = "month";
+
+            if(p){
+                switch(p){
+                    case 'd':
+                        periodoButtonVal = "day";
+                        break;
+                    case 's':
+                        periodoButtonVal = "week";
+                        break;
+                    case 'm':
+                        periodoButtonVal = "month";
+                        break;
+                } 
+                contadorCliques++;
+            }    
+
+            jQuery.getJSON("https://api.vagalume.com.br/rank.php?type=art&period="+periodoButtonVal+"&scope=all&limit=5&apikey={key}")
+            .done(function(data){
+
+                function artistaRankFirst(){
+                    if(lstArtMon[0]){
+                        $("#img-rank-frstplace").attr("src", lstArtMon[0].img);
+                        $("#rank-background-img").attr("src", lstArtMon[0].img);
+                        $("#nome-rank-frstplace").html(lstArtMon[0].nome);
+                    }
+                }
+
+                function artistaRankOthers(){
+                    for(n = 1; n < lstArtMon.length; n++){
+
+                        var hr = "<hr class='hr-others'>";
+
+                        if(n == (lstArtMon.length - 1)){
+                            hr = "";
+                        }
+
+                        divHtmlRankArtists = divHtmlRankArtists +   "<div class='card-body'>" +
+                                                                        "<div class='row'>" +
+                                                                            "<div class='col-sm-1 d-flex bg-primary mb-2 align-items-center justify-content-center'>" +
+                                                                                "<h6 class='text-white white-color'>#"+(n+1)+"</h6>" +
+                                                                            "</div>" +
+                                                                            "<div class='col-sm-4 d-flex align-items-center justify-content-center'>" +
+                                                                                "<img class='img-rank-others' src='"+lstArtMon[n].img+"' alt=''>" +
+                                                                            "</div>" +
+                                                                            "<div class='col-sm-7 d-flex align-items-center justify-content-center'>" +
+                                                                                "<h7 class='font-weight-light'>"+lstArtMon[n].nome+"</h7>" +
+                                                                            "</div>" +
+                                                                        "</div>" +
+                                                                    "</div>"+
+                                                                    hr;
+
+                        $("#rank-others").html(divHtmlRankArtists);
+
+                        if(contadorCliques == 1){
+                            $("#rank-others").collapse('show');
+                        }
+
+                    }
+                }
+
+                var divHtmlRankArtists = "",
+                    mesBr = "";
+
+                var lstArtMon = Array();
+                
+                switch(periodoButtonVal){
+                    case 'day':
+                        var anoPeriodo = data.art.day.period.year,
+                            artistasJson = data.art.day.all;
+                        mesBr = "Dia";
+                        break;  
+                    case 'week':
+                        var anoPeriodo = data.art.week.period.year,
+                            artistasJson = data.art.week.all;
+                        mesBr = "Semana";
+                        break;  
+                    case 'month':
+                        var anoPeriodo = data.art.month.period.year,
+                            artistasJson = data.art.month.all;
+                        mesBr = "Mês";
+                        break;        
+                }
+                
+                $("#titulo-rank").html("Top Artistas - "+mesBr);
+
+                for(var a in artistasJson){
+                    var nomeArtMon = artistasJson[a].name,
+                        imgArtMon = artistasJson[a].pic_medium;
+                    //FUNÇÃO COM NEW ARRAY: lstArtMon[a] = new Array(nomeArtMon, imgArtMon);
+                    //MESMA COISA SÓ QUE COM PUSH: lstArtMon.push([nomeArtMon, imgArtMon]); OU lstArtMon.push(new Array(nomeArtMon, imgArtMon))
+
+                    lstArtMon[a] = {nome: nomeArtMon, img: imgArtMon};
+                    //MESMA COISA SÓ QUE COM PUSH: lstArtMon.push({nome: nomeArtMon, img: imgArtMon});
+                }
+
+                if(p){
+                    artistaRankFirst();
+                    artistaRankOthers();
+                }else{
+                    artistaRankFirst();
+                    artistaRankOthers();
+                }
+ 
+            })
+            .fail(function(){
+
+            });
+        }
+
+    </script>
+</head>
+<body>
+    <div id="esqueleto">
+        <header class="jumbotron" id="cabecalho">
+            <h1 class="display-4 text-white">iTirstFinder</h1>
+        </header>
+
+        <nav class="nav mb-3 p-3 navbar-light bg-light nav-pills nav-justified">
+            <a class="nav-item nav-link active" href="#">iTirstFinder</a>
+            <a class="nav-item nav-link" href="#">Créditos</a>
+        </nav>
+
+        <section class="container-fluid mb-5">
+
+            <label class="text-muted" for="nome-artista">Digite o nome do Artista/Banda</label>
+
+            <form method="POST" onsubmit="procurarArtista();">
+                <div class="input-group mb-3">
+                    <input type="text" id="nome-artista" name="nome-artista" class="form-control p-4" placeholder="...">
+                </div>
+                <button name="botao-enviar" type="submit" class="btn btn-primary mb-3">Procurar</button>
+            </form>
+
+            <div id="div-erro">
+            </div>
+ 
+
+            <div class="container-fluid">
+
+                <div id="artista-genero" class="container-fluid">
+                    <div id="div-nome-artista" class="container-fluid">
+                    </div>
+                    <figure class="figure">
+                        <div id="div-img-artista">
+                        </div>
+                        <div id="pontos-artista">
+                        </div>
+                        <hr>
+                        <figcaption id="descricao-artista" class="figure-caption"></figcaption>
+                    </figure>
+                </div>
+
+                <div class="d-flex row">
+                    <div id="musicas-populares" class="container-fluid col-sm-6 mt-2">
+                    </div>
+
+                    <div id="albums-populares" class="container-fluid col-sm-6 mt-2">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="container-fluid">
+
+                <div class="container-fluid text-center">
+                    <h2 id="titulo-rank" class="font-weight-light p-2"></h2>
+                </div>  
+
+                <div class="container-fluid">
+                    
+                    <div class="ml-auto mr-auto d-flex" style="max-width: 25rem;">
+                        <button type="button" data-toggle="collapse" onClick="rankMensal('d')" data-toggle="button" class="btn flex-fill mr-2 mb-1 btn-success">Dia</button>
+                        <button type="button" data-toggle="collapse" onClick="rankMensal('s')" data-toggle="button" class="btn flex-fill mr-2 mb-1 btn-danger">Semana</button>
+                        <button type="button" data-toggle="collapse" onClick="rankMensal('m')" data-toggle="button" class="btn flex-fill mb-1 btn-info">Mês</button>
+                    </div>
+
+                    <div id="rank" class="card ml-auto mr-auto " style="max-width: 25rem;">
+                        
+                        <div id="div-rank-bk">
+                            
+                            <img id="rank-background-img" class="card-img" src="" alt="">
+
+                            <div id="card-header-rank" class="card-header card-img-overlay flex-column">
+                                <div class="container-fluid">
+                                    <span id="rank-icon">
+                                        <i class="fas fa-crown"></i>
+                                    </span>
+                                </div> 
+                                <div class="container-fluid">
+                                    <img id="img-rank-frstplace" class="rank-first-place" src="" alt="">
+                                </div>
+                                <h4 id="nome-rank-frstplace" class="text-white container-fluid p-1 display-4"></h4>
+                            </div>
+
+                        </div>
+
+                        <div id="rank-others">
+
+                        </div>
+
+                    </div>
+                </div>
+
+        </section>
+        <footer class="jumbotron jumbotron-fluid">
+            <p class="font-weight-light p-2" style="font-size:1.2em;">Desenvolvido por Filipe da Silva Santos</p>
+            <div class="alert alert-light p-2 mr-auto ml-auto" style="width:25em; font-size:1.2em;">
+                Site de Referência - <a href="http://www.vagalume.com.br" class="alert-link">www.vagalume.com.br</a>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
